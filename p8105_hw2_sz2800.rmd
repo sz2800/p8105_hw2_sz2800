@@ -1,0 +1,151 @@
+---
+title: "p8105_hw2_sz2800"
+author: "Stephanie Zhen"
+date: "10/04/2019"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readxl)
+library(tidyverse)
+```
+
+### Question 1: Trash Wheel
+
+Round the number of sports calls to the nearest integer and converts the result to an integer variable (using as.integer)
+```{r}
+dumpster_df = read_excel("./Trash-Wheel-Collection-Totals-8-6-19.xlsx", sheet = "Mr. Trash Wheel", skip =1) %>%
+  janitor::clean_names() %>%
+  drop_na(dumpster) %>%
+  mutate(
+    sports_balls = as.integer(sports_balls)
+  )
+```
+
+2017 Precipitation import + adding year
+```{r}
+trash17_df = read_excel("./Trash-Wheel-Collection-Totals-8-6-19.xlsx", sheet =  "2017 Precipitation", skip =1, n_max = 12) %>%
+  janitor::clean_names() %>%
+    mutate(
+      year = 2017)
+```
+
+2018 Precipitation import + adding year
+```{r}
+trash18_df = read_excel("./Trash-Wheel-Collection-Totals-8-6-19.xlsx", sheet =  "2018 Precipitation", skip =1, n_max = 12) %>%
+  janitor::clean_names() %>%
+    mutate(
+      year = 2018)
+```
+
+Joining 2017 and 2018 datasets together. Change month name by using month.name
+```{r}
+prec_join = 
+  full_join(trash17_df, trash18_df) %>%
+  mutate(
+    month = month.name[month]
+  )
+```
+The number of observations in the joined precipitation 2017 and 2018: `r nrow(prec_join)`
+
+The key variables in prec_join and dumpster_df: `r colnames(prec_join)`
+
+The total amount of precipitation in 2018:`r sum(pull(trash18_df, total))`
+
+Median sports balls in 2017:`r filter(dumpster_df, year == "2017") %>% pull(sports_balls) %>% median()`
+
+
+### Question 2: fivethirtyeight_datasets
+
+pols_month
+```{r}
+pols_clean = read_csv("./fivethirtyeight_datasets/pols-month.csv") %>%
+  janitor::clean_names() %>%
+  separate(mon, into = c("year", "month", "day"), convert = TRUE)
+pols_clean_tidy = 
+  pols_clean %>%
+  mutate(month = month.abb[month]) %>%
+  mutate(president = ifelse(prez_gop > 0, "gop", "dem")) %>%
+  select(-day, -prez_gop, -prez_dem)
+```
+
+snp: clean up
+```{r}
+snp_clean = read_csv("./fivethirtyeight_datasets/snp.csv") %>%
+  janitor::clean_names() %>%
+  separate(date, into = c("month", "day", "year"), convert = TRUE) %>%
+  mutate(month = month.abb[month]) %>%
+  select(year, month, close)
+```
+umemployment_clean wide to long
+```{r}
+unemp_clean = read_csv("./fivethirtyeight_datasets/unemployment.csv") %>%
+  pivot_longer(
+    cols = Jan:Dec,
+    names_to = "month",
+    values_to = "unemp_perc"
+  ) %>%
+  select(year = Year, month, unemp_perc) 
+```
+Joining/merging dataset: Left joined pols_clean_tidy, snp_clean then left join again with resulting dataset and unemp_clean
+```{r}
+pols_snp_join= 
+  left_join(pols_clean_tidy, snp_clean, by = c("year", "month")) 
+
+unemp_p_s_join =
+   left_join(pols_snp_join, unemp_clean, by = c("year", "month")) 
+```
+
+### Popular Baby Names dataset
+cleaning baby names dataset
+```{r}
+p_baby_clean = read_csv("./Popular_Baby_Names.csv") %>%
+  janitor::clean_names() %>%
+  rename("name" = "childs_first_name", "year" = "year_of_birth") %>%
+  mutate(ethnicity = recode(ethnicity, "ASIAN AND PACI" = "ASIAN AND PACIFIC ISLANDER", "BLACK NON HISP" = "BLACK NON HISPANIC", "WHITE NON HISP" = "WHITE NON HISPANIC")) %>%
+  mutate(name = str_to_upper(name)) %>%
+  distinct()
+```
+
+Ranks of the name: "OLIVIA" over time.
+```{r}
+olivia_df = p_baby_clean %>%
+  filter(name == "OLIVIA", gender == "FEMALE") %>%
+  select(name, year, ethnicity, rank) %>%
+  pivot_wider(
+    names_from = year,
+    values_from = rank
+  )
+    ##knitr::
+```
+
+Most popular, rank = 1, male birth name over time.
+```{r}
+pop_male_df = p_baby_clean %>%
+  filter(rank == 1, gender == "MALE") %>%
+  select(name, year, ethnicity) %>%
+  pivot_wider(
+    names_from = year,
+    values_from = name
+  )
+    ##knitr::
+```
+
+ggplot:
+```{r}
+male16_df = p_baby_clean %>%
+  filter (gender == "MALE", year == 2016, ethnicity == "WHITE NON HISPANIC")
+
+male16_plot = ggplot(male16_df, aes(x = rank, y = count)) +
+  geom_point()
+```
+
+
+
+
+
+
