@@ -119,8 +119,8 @@ olivia_df = p_baby_clean %>%
   pivot_wider(
     names_from = year,
     values_from = rank
-  )
-    ##knitr::
+  ) %>%
+    knitr::kable()
 ```
 
 Most popular, rank = 1, male birth name over time.
@@ -131,8 +131,8 @@ pop_male_df = p_baby_clean %>%
   pivot_wider(
     names_from = year,
     values_from = name
-  )
-    ##knitr::
+  ) %>%
+    knitr::kable()
 ```
 
 ggplot:
