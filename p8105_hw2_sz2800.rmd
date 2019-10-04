@@ -50,13 +50,9 @@ prec_join =
     month = month.name[month]
   )
 ```
-The number of observations in the joined precipitation 2017 and 2018: `r nrow(prec_join)`
+  In the joined precipitation 2017 and 2018 dataset, there is `r nrow(prec_join)` of observations with the key variables: `r colnames(prec_join)`. There is a total amount of `r sum(pull(trash18_df, total))` inches of precipitation for over the pass twelve months of 2018. 
 
-The key variables in prec_join and dumpster_df: `r colnames(prec_join)`
-
-The total amount of precipitation in 2018:`r sum(pull(trash18_df, total))`
-
-Median sports balls in 2017:`r filter(dumpster_df, year == "2017") %>% pull(sports_balls) %>% median()`
+  In the dataset, dumpster_df, there is `r nrow(dumpster_df)` of observations with the key variables: `r colnames(dumpster_df)`. In 2017, the median number of sports ball Mr.Trashwheel was able to retrieve was `r filter(dumpster_df, year == "2017") %>% pull(sports_balls) %>% median()` of sports balls.
 
 
 ### Question 2: fivethirtyeight_datasets
@@ -81,7 +77,8 @@ snp_clean = read_csv("./fivethirtyeight_datasets/snp.csv") %>%
   mutate(month = month.abb[month]) %>%
   select(year, month, close)
 ```
-umemployment_clean wide to long
+
+Unemployment_clean wide to long
 ```{r}
 unemp_clean = read_csv("./fivethirtyeight_datasets/unemployment.csv") %>%
   pivot_longer(
@@ -91,6 +88,7 @@ unemp_clean = read_csv("./fivethirtyeight_datasets/unemployment.csv") %>%
   ) %>%
   select(year = Year, month, unemp_perc) 
 ```
+
 Joining/merging dataset: Left joined pols_clean_tidy, snp_clean then left join again with resulting dataset and unemp_clean
 ```{r}
 pols_snp_join= 
@@ -99,8 +97,17 @@ pols_snp_join=
 unemp_p_s_join =
    left_join(pols_snp_join, unemp_clean, by = c("year", "month")) 
 ```
+ 
+  In the pols_clean_tidy dataframe, the key variables present are: `r colnames(pols_clean_tidy)`. These columns represent the number of senators, house of representative and the political party status of the president for a given year.
+  
+  In the snp_clean dataframe, the key variables present are: `r colnames(snp_clean)`. This represents the month and year and its respective closing values of stock index.
+  
+  In the unemp_clean dataframe, the key variables present are: `r colnames(unemp_clean)`. This represent the percentage of unemployment with its respective year and month.
+  
+  The resulting joined dataset unemp_p_s_join has the following key variables:`r colnames(unemp_p_s_join)`, with the dimensions: `r dim(unemp_p_s_join)`. This dataset spans the time from `r min(pull(unemp_p_s_join, year))` to `r max(pull(unemp_p_s_join, year))`, a total of `r max(pull(unemp_p_s_join, year)) - min(pull(unemp_p_s_join, year))` years. 
 
-### Popular Baby Names dataset
+
+### Question 3: Popular Baby Names dataset
 cleaning baby names dataset
 ```{r}
 p_baby_clean = read_csv("./Popular_Baby_Names.csv") %>%
@@ -137,12 +144,15 @@ pop_male_df = p_baby_clean %>%
 
 ggplot:
 ```{r}
-male16_df = p_baby_clean %>%
-  filter (gender == "MALE", year == 2016, ethnicity == "WHITE NON HISPANIC")
+male2016_df = p_baby_clean %>%
+    filter(gender == "MALE", year == 2016, ethnicity == "WHITE NON HISPANIC")
 
-male16_plot = ggplot(male16_df, aes(x = rank, y = count)) +
+male2016_plot = ggplot(male2016_df, aes (x = rank, y = count)) +
   geom_point()
+
+print(male2016_plot + ggtitle("Trend of Ranked Popular Names in 2016"))
 ```
+
 
 
 
